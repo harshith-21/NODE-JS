@@ -344,4 +344,83 @@ Listening to requests on port 8000 !!!
 ---
 ---
 ## **ROUTING**
+> when you dont introduce any routing whatever route u open it shows the same content unlike its supposed tobe 
+
+![](images/Screenshot%202022-11-22%20at%204.45.11%20PM.png)
+
+- EXPRESS makes the work routing very easy and can make complex route simple and will be implemented later
+
+
+```js
+const fs = require('fs');
+const http = require('http');
+const url = require('url');
+
+//? SERVER
+
+//* server is the variabke which stores the result of the createServer method
+const server = http.createServer((req,res) => {
+    console.log(req.url)
+    res.end('Hello from the server!');
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+In browser
+
+![](images/Screenshot%202022-11-22%20at%204.53.38%20PM.png)
+
+In cli
+
+![](images/Screenshot%202022-11-22%20at%204.54.24%20PM.png)
+
+> we get 2 reqs, one for response for the particular route and one for favicon
+
+### If-else for routing
+
+
+```js
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    if(pathName == '/' || pathName == '/overview' ){
+        res.end('This is the OVERVIEW')
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+    } else {
+        // headers
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'mt-own-header': 'hello world'  
+        });
+        // response
+        res.end('<h1>Page not found</h1>');
+    }
+    
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+![](images/Screenshot%202022-11-22%20at%205.17.26%20PM.png)
+![](images/Screenshot%202022-11-22%20at%205.18.03%20PM.png)
+![](images/Screenshot%202022-11-22%20at%205.18.40%20PM.png)
+
+
+> if there is no route in the ifelse statement for routes then the brower strucks at loading 
+
+> send headers before response
+
+> u can find error code and headers in developer tools network section 
+
+![](images/Screenshot%202022-11-22%20at%205.20.24%20PM.png)
+
+> this is how the dev tools look like for wrong route
+
+> see general tab in network for similar things from code and the error code
 

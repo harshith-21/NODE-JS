@@ -123,6 +123,6 @@ console.log('File is writen!');
 Synchronous code - Blocking
 Asynchronous code - Non Blocking
 
-> if a function or code block is taking long time it will also stop other functions 
+> if a function or code block is taking long time it will also stop other functions. so better to run them in background
 
 ![](images/Screenshot%202022-11-22%20at%202.55.02%20PM.png)

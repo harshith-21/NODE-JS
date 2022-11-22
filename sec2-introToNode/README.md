@@ -263,5 +263,85 @@ MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ node index.js
 will read file
 ERROR!!!
 ```
+---
+---
 
+## **SERVER**
+
+> simple server
+```js
+const http = require('http')
+
+//? SERVER
+//* server is the variabke which stores the result of the createServer method
+const server = http.createServer((req,res) => {
+    res.end('Hello from the server!');
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+![](images/Screenshot%202022-11-22%20at%204.30.25%20PM.png)
+
+in CLI
+
+![](images/Screenshot%202022-11-22%20at%204.31.04%20PM.png)
+
+>> its struck there unlike before because of event loop (discussed later) 
+
+
+```js
+const http = require('http')
+
+//* server is the variabke which stores the result of the createServer method
+const server = http.createServer((req,res) => {
+    console.log(req)
+    res.end('Hello from the server!');
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+and you will get a huge block in terminal which is response from the browser
+
+
+
+
+
+
+
+
+
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ node index1.js 
+Listening to requests on port 8000 !!!
+<ref *2> IncomingMessage {
+  _readableState: ReadableState {
+    objectMode: false,
+    highWaterMark: 16384,
+    buffer: BufferList { head: null, tail: null, length: 0 },
+    length: 0,
+    pipes: [],
+    flowing: null,
+    ended: false,
+    endEmitted: false,
+    reading: false,
+    constructed: true,
+    sync: true,
+    needReadable: false,
+    emittedReadable: false,
+    readableListening: false,
+    resumeScheduled: false,
+.
+.
+.
+. so on
+```
+---
+---
+## **ROUTING**
 

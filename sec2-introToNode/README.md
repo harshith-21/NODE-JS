@@ -740,3 +740,64 @@ let out = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
 
 ---
 
+### **Getting queries from URL**
+
+```js
+console.log(req.url);
+console.log(url.parse(req.url));
+``` 
+- adding these two lines at the start of the function and clicking on the fifth product detail would give 
+
+```json
+/product?id=4
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: null,
+  search: '?id=4',
+  query: 'id=4',
+  pathname: '/product',
+  path: '/product?id=4',
+  href: '/product?id=4'
+}
+```
+- where first line would be the link being requested and followed by the object URL object
+  
+---
+
+```js
+const { query, pathname } = url.parse(req.url, true);
+```
+This line would only take query and pathname from the url objec and store them in the said variables
+
+---
+Also when you 
+```js
+console.log(query);
+```
+product path in server it will print that query obj from above URL obj like
+
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ node index2.js 
+Listening to requests on port 8000 !!!
+[Object: null prototype] { id: '0' }
+
+```
+when i hit first link 
+
+---
+
+- **Now parcing that url and getting the id fpr product and replacing the placeholders with the appropriate data from the json for that product and returning that as a response by using the replaceTemplate function would give**
+
+![](images/Screenshot%202022-11-23%20at%202.56.14%20PM.png)
+
+and clickiong that details link would give 
+
+![](images/Screenshot%202022-11-23%20at%202.56.42%20PM.png)
+
+(similarly for each and every product)
+--> back button works too

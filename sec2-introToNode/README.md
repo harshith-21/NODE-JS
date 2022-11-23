@@ -801,3 +801,4 @@ and clickiong that details link would give
 
 (similarly for each and every product)
 --> back button works too
+

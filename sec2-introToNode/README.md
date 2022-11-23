@@ -802,3 +802,8 @@ and clickiong that details link would give
 (similarly for each and every product)
 --> back button works too
 
+## **MODULES :**
+---
+cant write all function in same file as it makes hella big and those functions cant be used inb other files
+so better make modules for functions
+

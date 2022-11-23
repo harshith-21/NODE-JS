@@ -549,3 +549,194 @@ server.listen(8000, '127.0.0.1', () => {
 - here the json file is read once and everytime a req comes then the variable is read not the file and file is read only once and that too synchronously, if file big , yes it will take some time to start the server because it will start answering reqs after the above synchronous part 
 - if it was in server it would be read again and again for each req which makes the server slow af
 
+## **Adding html content**
+
+- after adding html content and repalacing the hardcoded things for a particular product to place holders which look like 
+- {%<name_for_placeholder>%}
+
+and adding the overview template to the overview path which would result in below code
+
+```js
+// HTML TEMPLATES
+//* better to read the templates too from data beforehand for once and store them in a variable and use it
+const tempOverview = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-overview.html`, 'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-card.html`, 'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-product.html`, 'utf-8');
+
+// DATA
+const data = fs.readFileSync(`${__dirname}/1-node-farm/starter/dev-data/data.json`, 'utf-8');
+const dataObj = JSON.parse(data);
+
+// SERVER
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    //OVERVIEW page
+    if(pathName == '/' || pathName == '/overview' ){
+        // res.end('This is the OVERVIEW')
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.end(tempOverview);
+
+    // PRODUCT page
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+
+    // API
+    } else if (pathName == '/api') {
+        // res.end('You have reached the API')
+        res.writeHead(200, {'Content-type': 'application/json'});
+        res.end(data);
+
+    // ERROR
+    } else {
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'my-own-header': 'hello world'  
+        });
+        res.end('<h1>Page not found</h1>');
+    }
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+});
+```
+would return the following response at /overview or / path
+
+![](images/Screenshot%202022-11-23%20at%2012.48.08%20PM.png)
+
+
+-> replacing that placeholder with data gives
+
+```js
+const cardsHtml = dataObj.map(el => reaplceTemplate(tempCard, el));
+```
+cardsHtml is an array of elements where placeholders in tempCard are replaced with values 
+
+the index2.js would look like 
+```js
+const reaplceTemplate = (temp, product) => {
+    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+    output = output.replace(/{%IMAGE%}/g, product.image);
+    output = output.replace(/{%PRICE%}/g, product.price);
+    output = output.replace(/{%FROM%}/g, product.from);
+    output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
+    output = output.replace(/{%QUANTITY%}/g, product.quantity);
+    output = output.replace(/{%DESCRIPTION%}/g, product.description);
+    output = output.replace(/{%ID%}/g, product.id);
+
+    //? CSS-StyleDeclaration adds class to div element todo necessary change
+    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic'); 
+    return output;
+}
+
+// HTML TEMPLATES
+//* better to read the templates too from data beforehand for once and store them in a variable and use it
+const tempOverview = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-overview.html`, 'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-card.html`, 'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-product.html`, 'utf-8');
+
+// DATA
+const data = fs.readFileSync(`${__dirname}/1-node-farm/final/dev-data/data.json`, 'utf-8');
+const dataObj = JSON.parse(data);
+
+// SERVER
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    //OVERVIEW page
+    if(pathName == '/' || pathName == '/overview' ){
+        // res.end('This is the OVERVIEW')
+        res.writeHead(200, {'Content-Type': 'text/html'});
+
+        // const cardsHtml = dataObj.map(el => reaplceTemplate(tempCard, el)); //? this returns the html elements in an array 
+        const cardsHtml = dataObj.map(el => reaplceTemplate(tempCard, el)).join(''); //? joims all strings and make one big html string 
+        const output = tempOverview.replace('{%PRODUCT_CARDS%}', cardsHtml);
+        res.end(output);
+
+    // PRODUCT page
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+
+    // API
+    } else if (pathName == '/api') {
+        // res.end('You have reached the API')
+        res.writeHead(200, {'Content-type': 'application/json'});
+        res.end(data);
+
+    // ERROR
+    } else {
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'my-own-header': 'hello world'  
+        });
+        res.end('<h1>Page not found</h1>');
+    }
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+});
+```
+
+> And the webpage will look like
+
+![](images/Screenshot%202022-11-23%20at%202.10.05%20PM.png)
+
+
+this is the content of template-card.html and notice the last 'a' element which denotes the link and changes according to the product ID therefore creating a different link for diff product
+```html
+  <figure class="card">
+    <div class="card__emoji">{%IMAGE%}{%IMAGE%}</div>
+    <div class="card__title-box">
+      <h2 class="card__title">{%PRODUCTNAME%}</h2>
+    </div>
+
+    <div class="card__details">
+      <div class="card__detail-box {%NOT_ORGANIC%}">
+          <h6 class="card__detail card__detail--organic">Organic!</h6>
+      </div>
+
+      <div class="card__detail-box">
+        <h6 class="card__detail">{%QUANTITY%} per 📦</h6>
+      </div>
+        
+      <div class="card__detail-box">
+        <h6 class="card__detail card__detail--price">{%PRICE%}€</h6>
+      </div>
+    </div>
+
+    <a class="card__link" href="/product?id={%ID%}">
+      <span>Detail <i class="emoji-right">👉</i></span>
+    </a>
+  </figure>
+  ```
+
+
+
+---
+## **IMP**
+
+```js
+let out = temp.replace('{%PRODUCTNAME%}', product.productName);
+```
+- above thing will replace the {%PRODUCTNAME%} with the value of product.productName ( for once in the html string )
+
+- but if there are multiple instances of {%PRODUCTNAME%} and we need to replace all it better to use REGEX which would look like
+
+```js
+let out = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+```
+
+- this replaces all the {%PRODUCTNAME%} with the value of product.productName
+
+- Also notice that we have read the html templates and json (essentailly data for website) at the start of the index.js synchronously.So if we are making any edits in the templates or json or anything reg files which are read before the start of the server function, while the server is not running, we wont be able to see the changes as the data is read into variables and we are using them.
+- If we want to Reflect those changes we have to restart the server therefore reading the files again and storing the updated data into the variable objects.
+- we can also write that read function in the server function and then we should be able to see the changes upon a browser refresh
+  
+- we havent yet gave a response to the link with the ID / that "detail" button from the page so iot would give us an "page not found error" as we have written in the routes
+
+---
+

@@ -830,3 +830,103 @@ module.exports = (temp, product) => {
 ```
 the name you give after the const while importing or require statement will be the function name for that file scope
 
+
+
+## **NPM**
+**node package manager**
+
+funny enuf nmp is used to manage the packages and the repository itself
+
+for packages
+- **https://www.npmjs.com/**
+
+when you start a new project, hit
+```bash
+mpm init
+```
+answer the questions and it
+
+will create a package .json - config file
+
+
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ npm init
+This utility will walk you through creating a package.json file.
+It only covers the most common items, and tries to guess sensible defaults.
+
+See `npm help init` for definitive documentation on these fields
+and exactly what they do.
+
+Use `npm install <pkg>` afterwards to install a package and
+save it as a dependency in the package.json file.
+
+Press ^C at any time to quit.
+package name: (sec2-introtonode) node-farm
+version: (1.0.0) 
+description: me learning nodeJS
+entry point: (index.js) 
+test command: 
+git repository: 
+keywords: 
+author: harshith gandhe
+license: (ISC) 
+About to write to /Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec2-introToNode/package.json:
+
+{
+  "name": "node-farm",
+  "version": "1.0.0",
+  "description": "me learning nodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "harshith gandhe",
+  "license": "ISC"
+}
+
+
+Is this OK? (yes) y
+```
+2 types of installs
+- simple dependencies / regular
+  - eg: express etc
+- development dependencies
+  - eg: code bundler like webpack, debugger tool or testing library
+ 
+we are installing a package called "slugify" which helps in product urls ?
+
+nodemon installed
+restarts the server whenever we change some files or code
+
+you can install a dependency globally and use wherever you want 
+
+in mac
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ sudo npm install nodemon --global
+Password:
+
+added 33 packages, and audited 34 packages in 5s
+
+3 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+
+- using node mon
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ nodemon index2.js 
+[nodemon] 2.0.20
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node index2.js`
+Listening to requests on port 8000 !!!
+[nodemon] restarting due to changes...
+[nodemon] starting `node index2.js`
+Listening to requests on port 8000 !!!
+[nodemon] restarting due to changes...
+[nodemon] starting `node index2.js`
+Listening to requests on port 8000 !!!
+```
+restarts after every save/change

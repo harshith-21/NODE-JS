@@ -424,3 +424,128 @@ server.listen(8000, '127.0.0.1', () => {
 
 > see general tab in network for similar things from code and the error code
 
+## **API**
+
+- api is service/server from which we can ask and recieve the data
+
+**simple web api**
+```js
+const fs = require('fs');
+const http = require('http');
+const url = require('url');
+
+//? server/api
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    if(pathName == '/' || pathName == '/overview' ){
+        res.end('This is the OVERVIEW')
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+    } else if (pathName == '/api') {
+        res.end('You have reached the API')
+    } else {
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'my-own-header': 'hello world'  
+        });
+        res.end('<h1>Page not found</h1>');
+    }
+    
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+**Browser:**
+
+![](images/Screenshot%202022-11-23%20at%2011.11.36%20AM.png)
+
+> **using ./ and ${__dirname}/ ..**
+> 
+> using ./ means where the script is running 
+>
+> ${__dirname} means where the current file is located
+
+### **Reading from a json file**
+```js
+const fs = require('fs');
+const http = require('http');
+const url = require('url');
+
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    if(pathName == '/' || pathName == '/overview' ){
+        res.end('This is the OVERVIEW')
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+    } else if (pathName == '/api') {
+        // res.end('You have reached the API')
+
+        fs.readFile(`${__dirname}/1-node-farm/starter/dev-data/data.json`, 'utf-8', (err, data) => {
+            // console.log(__dirname);
+            const productData = JSON.parse(data);
+            res.writeHead(200, {'Content-type': 'application/json'});
+            res.end(data);
+        });
+
+
+    } else {
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'my-own-header': 'hello world'  
+        });
+        res.end('<h1>Page not found</h1>');
+    }
+    
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+**Browser response**
+![](images/Screenshot%202022-11-23%20at%2011.52.52%20AM.png)
+
+
+- **ALWAYS KEEP AN EYE ON WHICH CODE BLOCK IS SYNCHRONOUS AND WHICH IS NOT AND WHICH CODE EXECUTED IN BEGINNING AND WHICH CODE GET EXECUTED OVER AND OVER AGAIN FOR REQUESTS**
+
+- **But in this case everytime a req hits the server it has read the jsoon file again and again, its better to store that in a variable and use that for speed and reliability**
+
+```js
+const data = fs.readFileSync(`${__dirname}/1-node-farm/starter/dev-data/data.json`, 'utf-8');
+const dataObj = JSON.parse(data);
+
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
+
+    if(pathName == '/' || pathName == '/overview' ){
+        res.end('This is the OVERVIEW')
+    } else if (pathName == '/product') {
+        res.end('This is the PRODUCT')
+    } else if (pathName == '/api') {
+        // res.end('You have reached the API')
+        res.writeHead(200, {'Content-type': 'application/json'});
+        res.end(data);
+    } else {
+        res.writeHead(404, {
+            'Content-Type': 'text/html',
+            'my-own-header': 'hello world'  
+        });
+        res.end('<h1>Page not found</h1>');
+    }
+});
+
+// server.listen(8000) //? defaults to local host
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Listening to requests on port 8000 !!!');
+})
+```
+
+- here the json file is read once and everytime a req comes then the variable is read not the file and file is read only once and that too synchronously, if file big , yes it will take some time to start the server because it will start answering reqs after the above synchronous part 
+- if it was in server it would be read again and again for each req which makes the server slow af
+

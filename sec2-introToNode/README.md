@@ -807,3 +807,26 @@ and clickiong that details link would give
 cant write all function in same file as it makes hella big and those functions cant be used inb other files
 so better make modules for functions
 
+```js
+const replaceTemplate = require('./modules/replaceTemplate');
+```
+- import a module like this
+- module contents are
+```js
+module.exports = (temp, product) => {
+    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+    output = output.replace(/{%IMAGE%}/g, product.image);
+    output = output.replace(/{%PRICE%}/g, product.price);
+    output = output.replace(/{%FROM%}/g, product.from);
+    output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
+    output = output.replace(/{%QUANTITY%}/g, product.quantity);
+    output = output.replace(/{%DESCRIPTION%}/g, product.description);
+    output = output.replace(/{%ID%}/g, product.id);
+
+    //? CSS-StyleDeclaration adds class to div element todo necessary change
+    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic'); 
+    return output;
+}
+```
+the name you give after the const while importing or require statement will be the function name for that file scope
+

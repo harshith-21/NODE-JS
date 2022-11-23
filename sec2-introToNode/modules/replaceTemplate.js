@@ -11,5 +11,4 @@ module.exports = (temp, product) => {
     //? CSS-StyleDeclaration adds class to div element todo necessary change
     if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic'); 
     return output;
-
 }

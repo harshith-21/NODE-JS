@@ -748,7 +748,8 @@ console.log(url.parse(req.url));
 ``` 
 - adding these two lines at the start of the function and clicking on the fifth product detail would give 
 
-```json
+
+```bash
 product?id=4
 Url {
   protocol: null,

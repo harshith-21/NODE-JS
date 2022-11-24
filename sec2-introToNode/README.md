@@ -894,6 +894,7 @@ Is this OK? (yes) y
   - eg: code bundler like webpack, debugger tool or testing library
  
 we are installing a package called "slugify" which helps in product urls ?
+helps in beautifying the urls
 
 nodemon installed
 restarts the server whenever we change some files or code
@@ -930,3 +931,150 @@ Listening to requests on port 8000 !!!
 Listening to requests on port 8000 !!!
 ```
 restarts after every save/change
+
+## **USING SLUGIFY**
+
+```js
+console.log(slugify('Fresh Avacados', { lower: true }));
+```
+the above line produces
+```bash
+^CMBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ nodemon index2.js 
+[nodemon] 2.0.20
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node index2.js`
+fresh-avacados
+Listening to requests on port 8000 !!!
+```
+in CLI
+
+- Now working with the arrays
+```js
+//? 6
+const slugify = require('slugify');
+
+const replaceTemplate = require('./modules/replaceTemplate');
+
+// HTML TEMPLATES
+//* better to read the templates too from data beforehand for once and store them in a variable and use it
+const tempOverview = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-overview.html`, 'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-card.html`, 'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/1-node-farm/final/templates/template-product.html`, 'utf-8');
+
+// DATA
+const data = fs.readFileSync(`${__dirname}/1-node-farm/final/dev-data/data.json`, 'utf-8');
+const dataObj = JSON.parse(data);
+
+// console.log(slugify('Fresh Avacados', { lower: true }));
+
+const slugs = dataObj.map(el => slugify(el.productName, { lower: true }));
+console.log(slugs);
+```
+last console.log would result in 
+```bash
+^CMBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ nodemon index2.js 
+[nodemon] 2.0.20
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node index2.js`
+[
+  'fresh-avocados',
+  'goat-and-sheep-cheese',
+  'apollo-broccoli',
+  'baby-carrots',
+  'sweet-corncobs'
+]
+Listening to requests on port 8000 !!!
+```
+in CLI
+
+- Notice that array where product names are turned to slugs, caps to smalls and spaces to hyphens etc
+
+## **VERSIONING IN PACKAGES**
+PACKAGES are versioned like 1.2.3
+where 1 is major version number
+2 is minor version number
+3 is patch version number
+
+patches are for bug fixes 
+
+minor version number are for added features... if one uses 1.4.5 and new version is 1.4.6 even after updating that package his code wont break as there would be backwards compatibility as feature is added not deleted
+
+and major for huge changes and may break things 
+
+in package.json
+```json
+{
+  "name": "node-farm",
+  "version": "1.0.0",
+  "description": "me learning nodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "harshith gandhe",
+  "license": "ISC",
+  "dependencies": {
+    "slugify": "^1.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
+```
+- see that version started by " ^ " : means it accepts latest minor and patches but not major
+
+- we can also use " ~ " in its place to only accept patches
+
+- if we use " * " in the same place that means we accept all patches, minor and major versions
+
+> uninstalling and installing packages
+
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ npm i express
+
+added 62 packages, and audited 97 packages in 652ms
+
+10 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+
+```json
+  "author": "harshith gandhe",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "slugify": "^1.6.5"
+  },
+  ```
+  ```bash
+  MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ npm uninstall express
+
+removed 62 packages, and audited 35 packages in 621ms
+
+3 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+
+```json
+  "author": "harshith gandhe",
+  "license": "ISC",
+  "dependencies": {
+    "slugify": "^1.6.5"
+  },
+```
+
+--> add node_modules to gitignore everytime 
+
+- To check if any package is oudated or not
+```bash
+MBP-1AQ05D-GHR:sec2-introToNode harshithgandhe$ npm outdated
+```
+ 

@@ -1489,3 +1489,479 @@ Server listening on port 4000
 
 ```
 
+### **PARAM MIDDLEWARE**
+
+tourRoutes.js
+```js
+const express = require('express');
+const tourController = require('./../controllers/tourController');
+const router = express.Router();
+
+// ------- added part ----------------------
+router.param('id', tourController.checkID);
+// ------- added part ----------------------
+
+//? ROUTES for tours
+router
+   .route('/')
+   .get(tourController.GetAllTours)
+   .post(tourController.CreateTour);
+
+router
+   .route('/:id')
+   .get(tourController.GetTour)
+   .patch(tourController.UpdateTour)
+   .delete(tourController.deleteTour);
+
+module.exports = router;
+```
+and tourController.js
+```js
+const fs = require('fs');
+
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/../starter/dev-data/data/tours-simple.json`));
+
+// ------------- added part --------------
+exports.checkID = (req,res, next,val) => {
+    console.log(`Tour ID is ${val}`);
+    if (req.params.id * 1 > tours.length){
+        return res.status(404).json({
+            status: 'failed',
+            message: 'invalid ID'
+        });
+    }
+    next();
+};
+// ------------- added part --------------
+
+exports.GetAllTours =  (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        requestedAt: req.requestTime,
+        results: tours.length,
+        data: {
+            tours
+        }
+    });
+};
+
+exports.GetTour = (req, res) => {
+    console.log(req.params);
+
+    //? we get id as a string, so to convert it to number for easy equations
+    const id = req.params.id * 1;
+    const tour = tours.find(el => el.id === id);
+
+    res
+        .status(200)
+        .json({
+            status:'success',
+            data: {
+                tour
+            }
+        });
+
+};
+
+exports.CreateTour = (req, res) => {
+
+    //? new id for the new data
+    const newId = tours[tours.length - 1].id + 1;
+
+    //? adding Id to the new data
+    const newTour = Object.assign({ id: newId }, req.body);
+
+    tours.push(newTour);
+    fs.writeFile(`${__dirname}/starter/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
+        res
+            .status(201)
+            .json({
+                status:'success',
+                dataAdded: {
+                    tour: newTour
+                }
+            })
+    });
+
+};
+
+exports.UpdateTour = (req,res) => {
+    res.status(200).json({
+        status: 'success',
+        data: {
+            tour: '<updated tour here>'
+        }
+    });
+};
+
+exports.deleteTour = (req,res) => {
+    res.status(204).json({
+        status: 'success',
+        data: null
+    });
+};
+```
+
+CLI after hitting GET on http://localhost:4000/api/v1/tours/5
+```
+Server listening on port 4000
+hello from middleware function
+Tour ID is 5
+{ id: '5' }
+GET /api/v1/tours/5 200 4.118 ms - 1177
+```
+
+### **Chaining mmultiple middleware routes**
+> to check sometings in middle of the loop, can be done using middleware:
+
+eg: checking for few properties in a body for the post request:
+
+adding checkBody to tourController.js
+```js
+
+exports.checkBody = (req, res, next) => {
+    if(!req.body.name || !req.body.price) {
+        return res.status(404).json({
+            status: 'failed',
+            message:'missing name or price'
+        })
+    }
+    next();
+};
+```
+and in tourRoutes.js
+```js
+const express = require('express');
+const tourController = require('./../controllers/tourController');
+const router = express.Router();
+
+router.param('id', tourController.checkID);
+
+//? ROUTES for tours
+router
+   .route('/')
+   .get(tourController.GetAllTours)
+   .post(tourController.checkBody, tourController.CreateTour); //edited line
+
+router
+   .route('/:id')
+   .get(tourController.GetTour)
+   .patch(tourController.UpdateTour)
+   .delete(tourController.deleteTour);
+
+module.exports = router;
+```
+we can now check body if required properties are present or not and then proceed
+![](images/Screenshot%202022-12-12%20at%203.42.59%20PM.png)
+![](images/Screenshot%202022-12-12%20at%203.43.38%20PM.png)
+
+## **SERVING STATIC FILES**
+
+to serve static files from the server we can add a folder to the root link and if the path requested is not in our router then it will go to static files/folder and send response accordingly
+
+in app.js:
+```js
+const express = require('express');
+const app = express();
+
+const tourRouter = require('./routes/tourRoutes');
+const userRouter = require('./routes/userRoutes');
+
+
+// MIDDLEWARES
+const morgan = require('morgan');
+app.use(express.json());
+app.use(express.static(`${__dirname}/starter/public`)); //added line
+
+
+app.use((req, res, next) => {
+    console.log('hello from middleware function');
+    next();
+});
+
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString();
+    next();
+});
+
+app.use(morgan('dev'));
+
+
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+
+module.exports = app;
+```
+and when i hit http://localhost:4000/overview.html in browser i get 
+![](images/Screenshot%202022-12-12%20at%203.55.54%20PM.png)
+
+and in cli:
+```
+Server listening on port 4000
+hello from middleware function
+GET /public 404 5.592 ms - 145
+hello from middleware function
+GET /img/user.jpg 404 0.738 ms - 151
+hello from middleware function
+GET /img/tour-1-cover.jpg 404 0.300 ms - 159
+hello from middleware function
+GET /img/tour-2-cover.jpg 404 0.272 ms - 159
+hello from middleware function
+GET /img/tour-3-cover.jpg 404 0.414 ms - 159
+hello from middleware function
+GET /img/tour-4-cover.jpg 404 0.309 ms - 159
+hello from middleware function
+GET /img/tour-5-cover.jpg 404 0.306 ms - 159
+hello from middleware function
+GET /img/tour-6-cover.jpg 404 0.554 ms - 159
+```
+see those failed bec, its static and bla bla bla we havent sent all requests needed bla bla bla bla nothing to worry
+
+## **ENVIRONMENT VARIABLES**
+not bec of express but for nodeJS
+
+
+we can use environment vaiables to set debuggining or loggoing etc on or off
+
+adding this in server.js
+```javascript
+// START SERVER
+const app = require('./app');
+
+console.log(app.get('env'));
+
+port = 4000
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
+```
+will give this in cli:
+
+```
+development 
+Server listening on port 4000
+```
+express sets the node environment variable here to DEVELOPMENT
+
+There areother env vars
+
+for eg:
+
+```javascript
+console.log(process.env);
+```
+```sh
+development
+{
+  STARSHIP_SHELL: 'zsh',
+  MANPATH: '/opt/local/share/man:/opt/homebrew/share/man:/usr/share/man:/usr/local/share/man:/opt/local/share/man:/opt/homebrew/share/man:',
+  TERM_PROGRAM: 'vscode',
+  NODE: '/usr/local/bin/node',
+  INIT_CWD: '/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec6-ExpressApi',
+  TERM: 'xterm-256color',
+  SHELL: '/bin/zsh',
+  npm_config_metrics_registry: 'https://registry.npmjs.org/',
+  HOMEBREW_REPOSITORY: '/opt/homebrew',
+  TMPDIR: '/var/folders/zt/p6nnpq992vq4tg_63_sv2byw0000gp/T/',
+  npm_config_global_prefix: '/usr/local',
+  TERM_PROGRAM_VERSION: '1.69.2',
+  ORIGINAL_XDG_CURRENT_DESKTOP: 'undefined',
+  MallocNanoZone: '0',
+  COLOR: '1',
+  npm_config_noproxy: '',
+  npm_config_local_prefix: '/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec6-ExpressApi',
+  USER: 'harshithgandhe',
+  COMMAND_MODE: 'unix2003',
+  npm_config_globalconfig: '/usr/local/etc/npmrc',
+  SSH_AUTH_SOCK: '/private/tmp/com.apple.launchd.p0RoG9uuwk/Listeners',
+  __CF_USER_TEXT_ENCODING: '0x1F6:0x0:0x0',
+  npm_execpath: '/usr/local/lib/node_modules/npm/bin/npm-cli.js',
+  PATH: '/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec6-ExpressApi/node_modules/.bin:/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/node_modules/.bin:/Users/harshithgandhe/Desktop/NODE-TUT/node_modules/.bin:/Users/harshithgandhe/Desktop/node_modules/.bin:/Users/harshithgandhe/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/usr/local/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/harshithgandhe/.rd/bin:/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.10/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion Tech Preview.app/Contents/Public:/Library/Apple/usr/bin:/Users/harshithgandhe/.rd/bin:/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.10/bin',
+  npm_package_json: '/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec6-ExpressApi/package.json',
+  _: '/usr/local/bin/nodemon',
+  npm_config_userconfig: '/Users/harshithgandhe/.npmrc',
+  npm_config_init_module: '/Users/harshithgandhe/.npm-init.js',
+  __CFBundleIdentifier: 'com.microsoft.VSCode',
+  npm_command: 'start',
+  PWD: '/Users/harshithgandhe/Desktop/NODE-TUT/NODE-JS/sec6-ExpressApi',
+  npm_lifecycle_event: 'start',
+  EDITOR: 'vi',
+  npm_package_name: 'natours',
+  LANG: 'en_GB.UTF-8',
+  VSCODE_GIT_ASKPASS_EXTRA_ARGS: '--ms-enable-electron-run-as-node',
+  XPC_FLAGS: '0x0',
+  npm_config_node_gyp: '/usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js',
+  npm_package_version: '1.0.0',
+  XPC_SERVICE_NAME: '0',
+  SHLVL: '2',
+  HOME: '/Users/harshithgandhe',
+  VSCODE_GIT_ASKPASS_MAIN: '/private/var/folders/zt/p6nnpq992vq4tg_63_sv2byw0000gp/T/AppTranslocation/94C1D601-09D9-421D-A845-1899074A5086/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass-main.js',
+  HOMEBREW_PREFIX: '/opt/homebrew',
+  npm_config_cache: '/Users/harshithgandhe/.npm',
+  STARSHIP_SESSION_KEY: '3219716793179211',
+  LOGNAME: 'harshithgandhe',
+  npm_lifecycle_script: 'nodemon server.js',
+  VSCODE_GIT_IPC_HANDLE: '/var/folders/zt/p6nnpq992vq4tg_63_sv2byw0000gp/T/vscode-git-b8d0818a45.sock',
+  npm_config_user_agent: 'npm/8.19.2 node/v18.12.1 darwin arm64 workspaces/false',
+  VSCODE_GIT_ASKPASS_NODE: '/private/var/folders/zt/p6nnpq992vq4tg_63_sv2byw0000gp/T/AppTranslocation/94C1D601-09D9-421D-A845-1899074A5086/d/Visual Studio Code.app/Contents/Frameworks/Code Helper.app/Contents/MacOS/Code Helper',
+  GIT_ASKPASS: '/private/var/folders/zt/p6nnpq992vq4tg_63_sv2byw0000gp/T/AppTranslocation/94C1D601-09D9-421D-A845-1899074A5086/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass.sh',
+  INFOPATH: '/opt/homebrew/share/info:/opt/homebrew/share/info:',
+  HOMEBREW_CELLAR: '/opt/homebrew/Cellar',
+  npm_node_execpath: '/usr/local/bin/node',
+  npm_config_prefix: '/usr/local',
+  COLORTERM: 'truecolor'
+}
+Server listening on port 4000
+```
+we pass the environment variable via cli and prepend the variables like
+```
+NODE_ENV=development X=23 nodemon server.js
+```
+if we have many env variables,we can define a config file and use it
+
+you need a package called "dotenv" - "npm i dotenv" to pass these fields to commands
+
+after installing the package, and 
+
+create config.env file
+```
+NODE_ENV=development
+PORT=4000
+USERNAME=harshith
+PASSWORD=harshith@123
+```
+
+in server.js:
+```js
+// START SERVER
+const dotenv = require('dotenv');
+dotenv.config({ path: './config.env' });
+
+// bring app after config as it wont work other way around because after env, app is loaded and then env variables will work properly
+const app = require('./app');
+
+const PORT = process.env.PORT || 3000;
+
+// console.log(app.get('env'));
+console.log(process.env);
+
+port = 4000
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
+```
+in cli, bec we printed process.env
+```sh
+.
+.
+.
+.  
+  npm_node_execpath: '/usr/local/bin/node',
+  npm_config_prefix: '/usr/local',
+  COLORTERM: 'truecolor',
+  NODE_ENV: 'development',
+  PORT: '4000',
+  USERNAME: 'harshith',
+  PASSWORD: 'harshith@123'
+}
+Server listening on port 4000
+```
+
+We just need to read that config file once and its saved to node env and we can use it anywhere without inoporting anything.
+
+We can now logg message to console only when dev and not prod, also change port num here and see taking the effect
+
+in app.js we can say use morgan only if env is 'development' by
+```js
+// MIDDLEWARES
+if (process.env.NODE_ENV === 'development') {
+    const morgan = require('morgan');
+    app.use(morgan('dev'));
+}
+```
+and for port, in server.js we can:
+```js
+// START SERVER
+const dotenv = require('dotenv');
+const app = require('./app');
+
+dotenv.config({ path: './config.env' });
+
+
+// console.log(app.get('env'));
+console.log(process.env);
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
+``` 
+> as we defined port tobe 4000 in config.env, in cli we can see:
+```
+Server listening on port 4000
+```
+
+finally adding scripts,commands
+```json
+{
+  "name": "natours",
+  "version": "1.0.0",
+  "description": "learning Express",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon server.js",
+    "start:prod": "NODE_ENV=production nodemon server.js"
+  },
+  "author": "harshithGandhe",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0"
+  }
+}
+```
+and "npm run start:prod" starts server in prod and we cannot the logs from the morgan package as it only works in development
+```bash
+npm run start:prod
+
+> natours@1.0.0 start:prod
+> NODE_ENV=production nodemon server.js
+
+[nodemon] 2.0.20
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node server.js`
+production
+Server listening on port 4000
+hello from middleware function
+hello from middleware function
+hello from middleware function
+```
+and when 
+```bash
+npm run start:dev 
+
+> natours@1.0.0 start:dev
+> nodemon server.js
+
+[nodemon] 2.0.20
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node server.js`
+development
+Server listening on port 4000
+hello from middleware function
+POST /api/v1/tours 201 16.428 ms - 123
+hello from middleware function
+POST /api/v1/tours 201 4.033 ms - 123
+hello from middleware function
+POST /api/v1/tours 201 1.545 ms - 123
+hello from middleware function
+GET /api/v1/tours 200 6.620 ms - 9065
+```
+see those one liners about req, those are from morgan, we are in dev env so it prints reqs...

@@ -170,3 +170,11 @@ mongoose.connect('mongodb://localhost:27017/natours-test', () => console.log("DB
 ```
 for now to make it simple:
 ```js
+mongoose
+    .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+    })
+    .then( () => console.log("DB connection successfully established"))
+```
